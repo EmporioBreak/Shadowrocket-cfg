@@ -1,16 +1,17 @@
 (function () {
-    var plugin_id = "macro_lampa"; 
+    var plugin_id = "macro_lampa";
     console.log(`[${plugin_id}] Плагин запущен`);
 
-    var server_url = "http://192.168.0.1:8080/lampa"; // HTTP-сервер MacroDroid
+    var server_url = "http://127.0.0.1:8080/lampa";
 
     function checkMacroDroid() {
+        console.log(`[${plugin_id}] Проверяем MacroDroid...`);
         fetch(server_url)
             .then(res => res.json())
             .then(data => {
-                console.log(`[${plugin_id}] Данные от MacroDroid:`, data);
+                console.log(`[${plugin_id}] Получены данные:`, data);
                 if (data.q) {
-                    console.log(`[${plugin_id}] Получен фильм: ${data.q}`);
+                    console.log(`[${plugin_id}] Запускаем поиск: ${data.q}`);
                     searchMovie(data.q);
                 }
             })
@@ -18,7 +19,7 @@
     }
 
     function searchMovie(query) {
-        console.log(`[${plugin_id}] Запускаем поиск: ${query}`);
+        console.log(`[${plugin_id}] Запуск поиска в Lampa: ${query}`);
         Lampa.Activity.backward();
         setTimeout(() => {
             Lampa.Activity.push({
@@ -45,5 +46,5 @@
 
     setInterval(checkMacroDroid, 5000); // Проверяем сервер каждые 5 секунд
 
-    console.log(`[${plugin_id}] Плагин успешно загружен!`);
+    console.log(`[${plugin_id}] Плагин загружен!`);
 })();
