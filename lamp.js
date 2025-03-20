@@ -1,26 +1,23 @@
 (function () {
-    var plugin_id = "lampa_http"; // Уникальный ID плагина
-    console.log(`[${plugin_id}] Плагин загружен`);
+    var plugin_id = "macro_lampa"; // Уникальный ID плагина
+    console.log(`[${plugin_id}] Плагин запущен`);
 
-    var server = new Lampa.HttpServer(8181); // Запускаем локальный сервер
-    server.start();
+    var server_url = "http://192.168.0.151/lampa"; // IP MacroDroid-сервера
 
-    server.onRequest((req, res) => {
-        if (req.path === "/search" && req.method === "GET") {
-            let query = req.query["q"];
-            if (query) {
-                searchMovie(query);
-                res.sendJSON({ status: "ok", message: "Поиск запущен" });
-            } else {
-                res.sendJSON({ status: "error", message: "Нет запроса" });
-            }
-        } else {
-            res.sendJSON({ status: "error", message: "Неизвестный запрос" });
-        }
-    });
+    function checkMacroDroid() {
+        fetch(server_url)
+            .then(res => res.json())
+            .then(data => {
+                if (data.q) {
+                    console.log(`[${plugin_id}] Команда на поиск: ${data.q}`);
+                    searchMovie(data.q);
+                }
+            })
+            .catch(err => console.error(`[${plugin_id}] Ошибка сервера:`, err));
+    }
 
     function searchMovie(query) {
-        console.log(`[${plugin_id}] Поиск: ${query}`);
+        console.log(`[${plugin_id}] Запускаем поиск: ${query}`);
         Lampa.Activity.backward();
         setTimeout(() => {
             Lampa.Controller.toggle("search");
@@ -34,5 +31,7 @@
         }, 500);
     }
 
-    console.log(`[${plugin_id}] HTTP-сервер запущен на порту 8181`);
+    setInterval(checkMacroDroid, 5000); // Проверяем сервер каждые 5 секунд
+
+    console.log(`[${plugin_id}] Плагин успешно загружен!`);
 })();
