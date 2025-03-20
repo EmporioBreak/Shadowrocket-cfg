@@ -1,19 +1,17 @@
 (function () {
-    var plugin_id = "macro_lampa"; // Уникальный ID плагина
+    var plugin_id = "clipboard_lampa";
     console.log(`[${plugin_id}] Плагин запущен`);
 
-    var server_url = "http://192.168.0.151:8080/lampa"; // IP MacroDroid-сервера
+    var lastQuery = ""; // Последнее значение буфера
 
-    function checkMacroDroid() {
-        fetch(server_url)
-            .then(res => res.json())
-            .then(data => {
-                if (data.q) {
-                    console.log(`[${plugin_id}] Команда на поиск: ${data.q}`);
-                    searchMovie(data.q);
-                }
-            })
-            .catch(err => console.error(`[${plugin_id}] Ошибка сервера:`, err));
+    function checkClipboard() {
+        navigator.clipboard.readText().then(query => {
+            if (query && query !== lastQuery) {
+                console.log(`[${plugin_id}] Найден новый текст в буфере: ${query}`);
+                lastQuery = query;
+                searchMovie(query);
+            }
+        }).catch(err => console.error(`[${plugin_id}] Ошибка чтения буфера:`, err));
     }
 
     function searchMovie(query) {
@@ -24,14 +22,21 @@
             setTimeout(() => {
                 let searchInput = document.querySelector(".search__input");
                 if (searchInput) {
+                    console.log(`[${plugin_id}] Вставляем текст: ${query}`);
                     searchInput.value = query;
                     searchInput.dispatchEvent(new Event("input", { bubbles: true }));
+
+                    // Эмулируем нажатие "Enter"
+                    let enterEvent = new KeyboardEvent("keydown", { key: "Enter", bubbles: true });
+                    searchInput.dispatchEvent(enterEvent);
+                } else {
+                    console.log(`[${plugin_id}] Поле поиска не найдено!`);
                 }
-            }, 500);
-        }, 500);
+            }, 1500);
+        }, 1000);
     }
 
-    setInterval(checkMacroDroid, 5000); // Проверяем сервер каждые 5 секунд
+    setInterval(checkClipboard, 3000); // Проверяем буфер каждые 3 секунды
 
     console.log(`[${plugin_id}] Плагин успешно загружен!`);
 })();
