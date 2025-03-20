@@ -2,7 +2,7 @@
     var plugin_id = "macro_lampa"; // Уникальный ID плагина
     console.log(`[${plugin_id}] Плагин запущен`);
 
-    var server_url = "http://192.168.0.151/lampa"; // IP MacroDroid-сервера
+    var server_url = "http://192.168.0.151:8080/lampa"; // IP MacroDroid-сервера
 
     function checkMacroDroid() {
         fetch(server_url)
