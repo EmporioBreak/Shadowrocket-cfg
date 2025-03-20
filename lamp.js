@@ -1,44 +1,38 @@
 (function () {
-    var plugin_id = "webhook_search"; // Уникальный ID плагина
+    var plugin_id = "lampa_http"; // Уникальный ID плагина
     console.log(`[${plugin_id}] Плагин загружен`);
 
-    // URL вебхука (можно поменять на свой сервер)
-    var webhook_url = "http://192.168.0.151/test";
+    var server = new Lampa.HttpServer(8181); // Запускаем локальный сервер
+    server.start();
 
-    // Функция для выполнения поиска
+    server.onRequest((req, res) => {
+        if (req.path === "/search" && req.method === "GET") {
+            let query = req.query["q"];
+            if (query) {
+                searchMovie(query);
+                res.sendJSON({ status: "ok", message: "Поиск запущен" });
+            } else {
+                res.sendJSON({ status: "error", message: "Нет запроса" });
+            }
+        } else {
+            res.sendJSON({ status: "error", message: "Неизвестный запрос" });
+        }
+    });
+
     function searchMovie(query) {
-        console.log(`[${plugin_id}] Запрос на поиск: ${query}`);
-        Lampa.Activity.backward(); // Закрываем текущее окно
+        console.log(`[${plugin_id}] Поиск: ${query}`);
+        Lampa.Activity.backward();
         setTimeout(() => {
-            Lampa.Controller.toggle("search"); // Открываем поиск
+            Lampa.Controller.toggle("search");
             setTimeout(() => {
-                let searchInput = document.querySelector(".search__input"); // Поле ввода в Lampa
+                let searchInput = document.querySelector(".search__input");
                 if (searchInput) {
                     searchInput.value = query;
-                    searchInput.dispatchEvent(new Event("input", { bubbles: true })); // Запускаем событие ввода
-                    console.log(`[${plugin_id}] Введён текст в поиск: ${query}`);
-                } else {
-                    console.log(`[${plugin_id}] Поле поиска не найдено!`);
+                    searchInput.dispatchEvent(new Event("input", { bubbles: true }));
                 }
             }, 500);
         }, 500);
     }
 
-    // Функция проверки вебхука
-    function checkWebhook() {
-        fetch(webhook_url)
-            .then(response => response.json())
-            .then(data => {
-                if (data.query) {
-                    console.log(`[${plugin_id}] Получен текст: ${data.query}`);
-                    searchMovie(data.query);
-                }
-            })
-            .catch(error => console.log(`[${plugin_id}] Ошибка вебхука:`, error));
-    }
-
-    // Проверяем вебхук каждые 5 секунд
-    setInterval(checkWebhook, 5000);
-
-    console.log(`[${plugin_id}] Плагин успешно активирован!`);
+    console.log(`[${plugin_id}] HTTP-сервер запущен на порту 8181`);
 })();
