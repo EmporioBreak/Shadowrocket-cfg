@@ -1,24 +1,32 @@
 (function () {
-    var plugin_id = "clipboard_lampa";
+    var plugin_id = "macro_lampa"; 
     console.log(`[${plugin_id}] Плагин запущен`);
 
-    var lastQuery = ""; // Последнее значение буфера
+    var server_url = "http://192.168.0.1:8080/lampa"; // HTTP-сервер MacroDroid
 
-    function checkClipboard() {
-        navigator.clipboard.readText().then(query => {
-            if (query && query !== lastQuery) {
-                console.log(`[${plugin_id}] Найден новый текст в буфере: ${query}`);
-                lastQuery = query;
-                searchMovie(query);
-            }
-        }).catch(err => console.error(`[${plugin_id}] Ошибка чтения буфера:`, err));
+    function checkMacroDroid() {
+        fetch(server_url)
+            .then(res => res.json())
+            .then(data => {
+                console.log(`[${plugin_id}] Данные от MacroDroid:`, data);
+                if (data.q) {
+                    console.log(`[${plugin_id}] Получен фильм: ${data.q}`);
+                    searchMovie(data.q);
+                }
+            })
+            .catch(err => console.error(`[${plugin_id}] Ошибка запроса:`, err));
     }
 
     function searchMovie(query) {
         console.log(`[${plugin_id}] Запускаем поиск: ${query}`);
         Lampa.Activity.backward();
         setTimeout(() => {
-            Lampa.Controller.toggle("search");
+            Lampa.Activity.push({
+                url: "",
+                title: "Поиск",
+                component: "search"
+            });
+
             setTimeout(() => {
                 let searchInput = document.querySelector(".search__input");
                 if (searchInput) {
@@ -26,7 +34,6 @@
                     searchInput.value = query;
                     searchInput.dispatchEvent(new Event("input", { bubbles: true }));
 
-                    // Эмулируем нажатие "Enter"
                     let enterEvent = new KeyboardEvent("keydown", { key: "Enter", bubbles: true });
                     searchInput.dispatchEvent(enterEvent);
                 } else {
@@ -36,7 +43,7 @@
         }, 1000);
     }
 
-    setInterval(checkClipboard, 3000); // Проверяем буфер каждые 3 секунды
+    setInterval(checkMacroDroid, 5000); // Проверяем сервер каждые 5 секунд
 
     console.log(`[${plugin_id}] Плагин успешно загружен!`);
 })();
